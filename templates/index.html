@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IndustrialIQ — Predictive Maintenance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ════════════════════════════════════════════
+   THEME VARIABLES
+════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg:        #0b0f1a;
+  --bg2:       #111827;
+  --bg3:       #1a2236;
+  --bg4:       #202d44;
+  --card:      #131d2e;
+  --card2:     #172035;
+  --border:    rgba(255,255,255,0.08);
+  --border2:   rgba(255,255,255,0.15);
+  --text:      #f0f4ff;
+  --text2:     #94a3c0;
+  --text3:     #4d6080;
+  --shadow:    0 4px 32px rgba(0,0,0,0.5);
+  --shadow2:   0 8px 40px rgba(0,0,0,0.6);
+  --scrollbar: rgba(255,255,255,0.1);
+  --input-bg:  rgba(255,255,255,0.04);
+}
+[data-theme="light"] {
+  --bg:        #f0f4ff;
+  --bg2:       #ffffff;
+  --bg3:       #e8edf8;
+  --bg4:       #d8e0f0;
+  --card:      #ffffff;
+  --card2:     #f5f8ff;
+  --border:    rgba(0,0,0,0.08);
+  --border2:   rgba(0,0,0,0.15);
+  --text:      #0f1729;
+  --text2:     #4a5878;
+  --text3:     #8899bb;
+  --shadow:    0 4px 24px rgba(15,23,42,0.1);
+  --shadow2:   0 8px 40px rgba(15,23,42,0.15);
+  --scrollbar: rgba(0,0,0,0.12);
+  --input-bg:  rgba(0,0,0,0.03);
+}
+/* Shared accent colors */
+:root {
+  --accent:    #4f7cff;
+  --accent2:   #7aa2ff;
+  --adim:      rgba(79,124,255,0.12);
+  --adim2:     rgba(79,124,255,0.22);
+  --green:     #10d98a;
+  --gdim:      rgba(16,217,138,0.12);
+  --yellow:    #f5c518;
+  --ydim:      rgba(245,197,24,0.12);
+  --orange:    #ff7c2a;
+  --odim:      rgba(255,124,42,0.12);
+  --red:       #ff3b5c;
+  --rdim:      rgba(255,59,92,0.12);
+  --teal:      #06c8d0;
+  --tdim:      rgba(6,200,208,0.12);
+  --purple:    #a855f7;
+  --mono:      'JetBrains Mono', monospace;
+  --sans:      'Inter', sans-serif;
+  --r:         12px;
+  --rl:        18px;
+}
+
+/* ════════════════════════════════════════════
+   RESET & BASE
+════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; -webkit-font-smoothing: antialiased; transition: background .3s, color .3s; }
+button { font-family: var(--sans); cursor: pointer; border: none; background: none; }
+input[type=number] { -moz-appearance: textfield; }
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 4px; }
+
+/* ════════════════════════════════════════════
+   APP SHELL
+════════════════════════════════════════════ */
+.app { display: grid; grid-template-rows: 60px 1fr; height: 100vh; overflow: hidden; }
+
+/* ════════════════════════════════════════════
+   TOPBAR
+════════════════════════════════════════════ */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; background: var(--bg2); border-bottom: 1px solid var(--border);
+  position: relative; z-index: 20; box-shadow: var(--shadow);
+}
+.topbar-logo { display: flex; align-items: center; gap: 12px; }
+.logo-mark {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 700; color: #fff; letter-spacing: .04em;
+  box-shadow: 0 0 20px rgba(79,124,255,0.45);
+  flex-shrink: 0;
+}
+.logo-name { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+.logo-name span { color: var(--accent2); }
+.logo-sub { font-size: 9px; color: var(--text3); font-family: var(--mono); letter-spacing: .12em; margin-top: 1px; }
+.topbar-nav { display: flex; align-items: center; gap: 4px; }
+.nav-tab { padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; transition: all .18s; border: 1px solid transparent; }
+.nav-tab:hover { color: var(--text2); background: var(--bg3); }
+.nav-tab.active { color: var(--accent2); background: var(--adim); border-color: rgba(79,124,255,.25); }
+.topbar-right { display: flex; align-items: center; gap: 14px; }
+.sys-online { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: .1em; }
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulseAnim 2s ease-in-out infinite; flex-shrink: 0; }
+@keyframes pulseAnim { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,217,138,.5)} 50%{opacity:.6;box-shadow:0 0 0 5px rgba(16,217,138,0)} }
+.session-tag { font-family: var(--mono); font-size: 10px; color: var(--accent2); background: var(--adim); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(79,124,255,.3); letter-spacing: .1em; }
+.clock-tag { font-family: var(--mono); font-size: 11px; color: var(--text2); background: var(--bg3); padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border); letter-spacing: .06em; }
+
+/* Theme toggle */
+.theme-toggle {
+  width: 40px; height: 22px; border-radius: 11px; border: 1px solid var(--border2);
+  background: var(--bg3); cursor: pointer; position: relative; transition: background .3s;
+  flex-shrink: 0;
+}
+.theme-toggle-knob {
+  width: 16px; height: 16px; border-radius: 50%; position: absolute; top: 2px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  transition: left .3s; left: 2px;
+}
+[data-theme="light"] .theme-toggle-knob { left: 20px; }
+.theme-toggle-icon { font-size: 10px; position: absolute; top: 50%; transform: translateY(-50%); }
+.theme-toggle-icon.moon { left: 5px; }
+.theme-toggle-icon.sun  { right: 5px; }
+
+/* ════════════════════════════════════════════
+   MAIN LAYOUT
+════════════════════════════════════════════ */
+.main-layout { display: grid; grid-template-columns: 320px 1fr; overflow: hidden; height: 100%; }
+
+/* ════════════════════════════════════════════
+   SIDEBAR
+════════════════════════════════════════════ */
+.sidebar { background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; }
+.sb-sec { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+.sb-lbl { font-size: 10px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); display: flex; align-items: center; justify-content: space-between; margin-bottom: 11px; }
+.sb-badge { font-size: 9px; color: var(--accent2); background: var(--adim); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(79,124,255,.25); letter-spacing: .1em; font-weight: 600; }
+.opt-tag { font-size: 8px; color: var(--text3); background: var(--bg3); padding: 2px 7px; border-radius: 4px; font-weight: 400; letter-spacing: .08em; border: 1px solid var(--border); }
+
+/* Machine list */
+.mach-list { display: flex; flex-direction: column; gap: 5px; }
+.mach-btn {
+  display: grid; grid-template-columns: 38px 1fr 18px; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: var(--r); border: 1px solid transparent;
+  cursor: pointer; transition: all .18s; text-align: left; width: 100%;
+  background: var(--bg3);
+}
+.mach-btn:hover { border-color: var(--border2); background: var(--bg4); }
+.mach-btn.active { border-color: rgba(79,124,255,.5); background: var(--adim); box-shadow: 0 0 0 1px rgba(79,124,255,.15); }
+.mach-ico { font-size: 22px; text-align: center; line-height: 1; }
+.mach-inf { min-width: 0; }
+.mach-n { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mach-d { font-size: 10px; color: var(--text3); font-family: var(--mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.mach-chk { font-size: 12px; color: var(--accent2); opacity: 0; transition: opacity .18s; font-weight: 800; }
+.mach-btn.active .mach-chk { opacity: 1; }
+
+/* Upload */
+.upload-zone { border: 1.5px dashed var(--border2); border-radius: var(--r); overflow: hidden; cursor: pointer; transition: border-color .2s, background .2s; }
+.upload-zone.has-file { border-style: solid; border-color: rgba(16,217,138,.5); }
+.upload-zone:hover .upload-prompt { background: var(--adim); }
+.upload-prompt { padding: 18px 14px; display: flex; flex-direction: column; align-items: center; gap: 7px; color: var(--text3); transition: background .2s; }
+.upload-ico { font-size: 26px; opacity: .5; }
+.upload-t { font-size: 12px; color: var(--text2); text-align: center; line-height: 1.5; }
+.upload-t strong { color: var(--accent2); font-weight: 600; }
+.upload-s { font-size: 9px; color: var(--text3); font-family: var(--mono); letter-spacing: .08em; }
+#prev-img { width: 100%; max-height: 140px; object-fit: cover; display: block; }
+.prev-bar { display: flex; align-items: center; justify-content: space-between; padding: 7px 12px; background: var(--bg3); border-top: 1px solid var(--border); }
+.prev-tag { font-family: var(--mono); font-size: 9px; color: var(--green); letter-spacing: .12em; font-weight: 600; }
+.prev-rm { font-size: 10px; color: var(--red); font-family: var(--mono); padding: 3px 9px; border: 1px solid rgba(255,59,92,.3); border-radius: 5px; background: none; cursor: pointer; transition: background .15s; }
+.prev-rm:hover { background: var(--rdim); }
+
+/* Sensor inputs */
+.s-meta { font-size: 11px; color: var(--text3); font-family: var(--mono); margin-bottom: 11px; line-height: 1.6; }
+.s-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.s-card { background: var(--input-bg); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 13px; transition: border-color .2s, box-shadow .2s; }
+.s-card:focus-within { border-color: rgba(79,124,255,.55); box-shadow: 0 0 0 3px rgba(79,124,255,.1); }
+.s-lbl { font-size: 9px; font-weight: 700; letter-spacing: .18em; color: var(--text3); font-family: var(--mono); text-transform: uppercase; margin-bottom: 5px; }
+.s-inp { width: 100%; background: none; border: none; outline: none; font-size: 20px; font-weight: 700; color: var(--text); font-family: var(--mono); }
+.s-inp::placeholder { color: var(--text3); font-weight: 400; }
+.s-unit { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 2px; }
+
+/* Analyze button */
+.btn-run {
+  width: 100%; padding: 14px; border-radius: var(--r); font-size: 14px; font-weight: 700; letter-spacing: .1em;
+  background: linear-gradient(135deg, var(--accent), var(--purple)); color: #fff; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  transition: opacity .2s, transform .1s, box-shadow .2s;
+  box-shadow: 0 4px 24px rgba(79,124,255,.4);
+}
+.btn-run:hover:not(:disabled) { opacity: .9; box-shadow: 0 6px 32px rgba(79,124,255,.55); }
+.btn-run:active:not(:disabled) { transform: scale(.99); }
+.btn-run:disabled { background: var(--bg4); color: var(--text3); cursor: not-allowed; box-shadow: none; }
+.btn-hint { font-size: 10px; color: var(--text3); font-family: var(--mono); text-align: center; margin-top: 8px; letter-spacing: .04em; }
+
+/* ════════════════════════════════════════════
+   CONTENT AREA
+════════════════════════════════════════════ */
+.content { display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+.c-topbar {
+  padding: 14px 26px; border-bottom: 1px solid var(--border); background: var(--bg2);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.c-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.c-meta { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 3px; letter-spacing: .04em; }
+.live-pill { font-family: var(--mono); font-size: 9px; padding: 5px 13px; border-radius: 20px; letter-spacing: .14em; border: 1px solid; font-weight: 600; transition: all .3s; }
+.live-pill.standby { background: var(--bg4); color: var(--text3); border-color: var(--border2); }
+.live-pill.busy { background: var(--ydim); color: var(--yellow); border-color: rgba(245,197,24,.4); animation: pillPulse 1.2s ease-in-out infinite; }
+.live-pill.live { background: var(--gdim); color: var(--green); border-color: rgba(16,217,138,.4); }
+@keyframes pillPulse { 0%,100%{opacity:1} 50%{opacity:.55} }
+
+/* ════════════════════════════════════════════
+   STATE CONTAINERS
+════════════════════════════════════════════ */
+.state { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
+.res-wrap { flex: 1; overflow-y: auto; padding: 22px 26px; }
+
+/* ── Idle ── */
+.idle-c { display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; }
+.idle-rings { position: relative; width: 110px; height: 110px; margin-bottom: 6px; }
+.ring { position: absolute; border-radius: 50%; border: 1px solid; animation: ringRotate linear infinite; }
+.ring1 { inset: 0;   border-color: rgba(79,124,255,.3); animation-duration: 10s; }
+.ring2 { inset: 16px; border-color: rgba(79,124,255,.18); animation-duration: 7s; animation-direction: reverse; }
+.ring3 { inset: 32px; border-color: rgba(79,124,255,.1); animation-duration: 14s; }
+.ring-core { position: absolute; inset: 42px; border-radius: 50%; background: var(--adim); border: 1px solid rgba(79,124,255,.4); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; color: var(--accent2); font-weight: 700; letter-spacing: .05em; }
+@keyframes ringRotate { to { transform: rotate(360deg); } }
+.idle-h { font-size: 20px; font-weight: 700; color: var(--text2); }
+.idle-p { font-size: 13px; color: var(--text3); line-height: 1.8; font-family: var(--mono); max-width: 400px; }
+.idle-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.chip { font-size: 11px; color: var(--text3); font-family: var(--mono); background: var(--bg3); border: 1px solid var(--border); padding: 5px 12px; border-radius: 20px; display: flex; align-items: center; gap: 6px; }
+.chdot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Loading ── */
+.load-c { display: flex; flex-direction: column; align-items: center; gap: 22px; }
+.load-ring { width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--bg3); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.load-title { font-size: 15px; font-weight: 600; color: var(--text2); }
+.load-steps { display: flex; flex-direction: column; gap: 10px; }
+.lstep { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.ldot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.lstep.active { color: var(--accent2); }
+.lstep.done   { color: var(--green); }
+
+/* ── Error ── */
+.err-c { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.err-ico { font-size: 44px; color: var(--red); opacity: .55; }
+.err-h { font-size: 18px; font-weight: 700; color: var(--text2); }
+.err-msg { font-size: 12px; color: var(--text3); font-family: var(--mono); max-width: 440px; line-height: 1.75; }
+.btn-retry { margin-top: 10px; padding: 10px 26px; border: 1px solid var(--border2); color: var(--text2); border-radius: var(--r); font-size: 13px; cursor: pointer; transition: all .18s; font-weight: 500; }
+.btn-retry:hover { border-color: var(--accent); color: var(--accent); background: var(--adim); }
+
+/* ════════════════════════════════════════════
+   RESULTS LAYOUT
+════════════════════════════════════════════ */
+.res-inner { display: flex; flex-direction: column; gap: 16px; animation: fadeUp .4s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--rl); overflow: hidden; box-shadow: var(--shadow); }
+.card-head { padding: 13px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--card2); }
+.card-head-ico { font-size: 16px; }
+.card-head-lbl { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); }
+.card-head-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.tag { font-family: var(--mono); font-size: 9px; padding: 3px 9px; border-radius: 20px; font-weight: 600; letter-spacing: .1em; border: 1px solid; }
+.tag-green  { color: var(--green);  background: var(--gdim);  border-color: rgba(16,217,138,.35); }
+.tag-yellow { color: var(--yellow); background: var(--ydim);  border-color: rgba(245,197,24,.35); }
+.tag-orange { color: var(--orange); background: var(--odim);  border-color: rgba(255,124,42,.35); }
+.tag-red    { color: var(--red);    background: var(--rdim);  border-color: rgba(255,59,92,.35); }
+.tag-accent { color: var(--accent2);background: var(--adim);  border-color: rgba(79,124,255,.35); }
+.tag-purple { color: var(--purple); background: rgba(168,85,247,.12); border-color: rgba(168,85,247,.35); }
+.tag-teal   { color: var(--teal);   background: var(--tdim);  border-color: rgba(6,200,208,.35); }
+
+/* ── KPI row ── */
+.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+.kpi { background: var(--card); border: 1px solid var(--border); border-radius: var(--rl); padding: 18px 20px; position: relative; overflow: hidden; box-shadow: var(--shadow); transition: background .3s; }
+.kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius: var(--rl) var(--rl) 0 0; }
+.kpi-accent::before { background: linear-gradient(90deg,var(--accent),var(--purple)); }
+.kpi-green::before  { background: var(--green); }
+.kpi-yellow::before { background: var(--yellow); }
+.kpi-red::before    { background: var(--red); }
+.kpi-orange::before { background: var(--orange); }
+.kpi-lbl { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 8px; }
+.kpi-val { font-family: var(--mono); font-size: 30px; font-weight: 800; line-height: 1; }
+.kpi-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+/* ── Middle row: gauge + bars ── */
+.mid-row { display: grid; grid-template-columns: 230px 1fr; gap: 14px; }
+
+/* Gauge card */
+.gauge-card-inner { padding: 22px 20px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.gauge-wrap { position: relative; width: 150px; height: 150px; }
+.gauge-wrap svg { width: 150px; height: 150px; transform: rotate(-90deg); }
+.g-bg { fill: none; stroke: var(--bg3); stroke-width: 13; }
+.g-fg { fill: none; stroke-width: 13; stroke-linecap: round; transition: stroke-dasharray 1.5s cubic-bezier(.4,0,.2,1); }
+.gauge-ctr { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.gauge-pct { font-family: var(--mono); font-size: 30px; font-weight: 800; line-height: 1; }
+.gauge-sub { font-size: 9px; color: var(--text3); letter-spacing: .16em; font-family: var(--mono); margin-top: 3px; }
+.gauge-risk { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 5px 14px; border-radius: 20px; letter-spacing: .1em; border: 1px solid; }
+.gauge-machine { font-size: 14px; font-weight: 700; color: var(--text); text-align: center; }
+.gauge-counts { font-size: 11px; color: var(--text3); font-family: var(--mono); text-align: center; line-height: 1.8; }
+
+/* Bars card */
+.bars-inner { padding: 18px 20px; }
+.card-lbl { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 14px; }
+.bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; }
+.bar-row:last-child { margin-bottom: 0; }
+.bar-name { width: 115px; font-size: 11px; color: var(--text3); font-family: var(--mono); text-align: right; flex-shrink: 0; }
+.bar-track { flex: 1; height: 7px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width 1.3s cubic-bezier(.4,0,.2,1); width: 0%; }
+.bar-val { width: 80px; font-size: 11px; font-family: var(--mono); color: var(--text2); text-align: right; flex-shrink: 0; }
+.bar-badge { width: 72px; font-size: 8px; font-family: var(--mono); font-weight: 700; letter-spacing: .1em; padding: 3px 8px; border-radius: 5px; text-align: center; flex-shrink: 0; }
+
+/* ── Vision summary card ── */
+.vision-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.vision-left { padding: 20px; border-right: 1px solid var(--border); }
+.vision-right { padding: 20px; }
+.vis-summary { font-size: 13px; color: var(--text2); line-height: 1.85; margin-bottom: 14px; }
+.vis-meta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.vis-meta { display: flex; flex-direction: column; gap: 3px; }
+.vis-meta-lbl { font-size: 8px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); }
+.vis-meta-val { font-size: 13px; font-weight: 600; color: var(--text); }
+.vis-actions-title { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 10px; }
+.vis-action { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
+.vis-action-n { width: 20px; height: 20px; border-radius: 5px; background: var(--adim); border: 1px solid rgba(79,124,255,.3); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 9px; color: var(--accent2); font-weight: 700; flex-shrink: 0; }
+.vis-action-t { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+/* Defects list */
+.defects-title { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 10px; }
+.defect-item { display: flex; gap: 12px; margin-bottom: 9px; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg3); }
+.defect-sev { font-size: 8px; font-family: var(--mono); font-weight: 700; letter-spacing: .12em; margin-bottom: 3px; }
+.defect-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.defect-loc  { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-bottom: 4px; }
+.defect-desc { font-size: 11px; color: var(--text2); line-height: 1.6; }
+.no-defects { text-align: center; padding: 20px; color: var(--text3); font-family: var(--mono); font-size: 12px; }
+
+/* ── Bottom: issues + recs ── */
+.bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.issue-item { display: flex; flex-direction: column; gap: 4px; margin-bottom: 9px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); border-left: 3px solid; }
+.issue-item:last-child { margin-bottom: 0; }
+.issue-item.crit { border-left-color: var(--red);    background: rgba(255,59,92,.04); }
+.issue-item.warn { border-left-color: var(--orange);  background: rgba(255,124,42,.04); }
+.issue-item.ok   { border-left-color: var(--green);   background: rgba(16,217,138,.04); }
+.issue-lv { font-size: 9px; font-family: var(--mono); font-weight: 700; letter-spacing: .14em; }
+.issue-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.issue-desc { font-size: 11px; color: var(--text2); line-height: 1.55; }
+.rec-item { display: flex; gap: 11px; margin-bottom: 8px; padding: 11px 13px; background: var(--bg3); border-radius: 10px; border: 1px solid var(--border); }
+.rec-item:last-child { margin-bottom: 0; }
+.rec-n { font-family: var(--mono); font-size: 10px; color: var(--accent2); background: var(--adim); width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; border: 1px solid rgba(79,124,255,.25); }
+.rec-b { flex: 1; }
+.rec-p { font-size: 9px; font-family: var(--mono); font-weight: 700; letter-spacing: .12em; margin-bottom: 3px; }
+.rec-a { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.rec-d { font-size: 11px; color: var(--text2); line-height: 1.6; }
+
+/* ── AI Sensor Report ── */
+.report-body { padding: 20px; font-size: 13px; line-height: 2.1; color: var(--text2); white-space: pre-wrap; font-family: var(--mono); max-height: 380px; overflow-y: auto; }
+.report-body strong, .report-body b { color: var(--text); font-weight: 700; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-mark">IIQ</div>
+    <div>
+      <div class="logo-name">Industrial<span>IQ</span></div>
+      <div class="logo-sub">PREDICTIVE MAINTENANCE SYSTEM</div>
+    </div>
+  </div>
+
+  <div class="topbar-nav">
+    <a href="/" class="nav-tab active" style="text-decoration:none">Overview</a>
+    <a href="/sensors" class="nav-tab" style="text-decoration:none">Sensors</a>
+    <a href="/reports" class="nav-tab" style="text-decoration:none">Reports</a>
+    <a href="/reports" class="nav-tab" style="text-decoration:none">History</a>
+  </div>
+
+  <div class="topbar-right">
+    <div class="sys-online"><span class="pulse"></span>ONLINE</div>
+    <div class="session-tag" id="sess-tag">SESSION 00</div>
+    <div class="clock-tag" id="clock">--:--:--</div>
+    <!-- Theme toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+      <div class="theme-toggle-knob"></div>
+      <span class="theme-toggle-icon moon">🌙</span>
+      <span class="theme-toggle-icon sun">☀️</span>
+    </button>
+  </div>
+</header>
+
+<!-- ══ MAIN ══ -->
+<div class="main-layout">
+
+  <!-- ════ SIDEBAR ════ -->
+  <aside class="sidebar">
+
+    <div class="sb-sec">
+      <div class="sb-lbl">Machine Type <span class="sb-badge" id="sens-cnt">—</span></div>
+      <div class="mach-list" id="mach-list">
+        {% for machine in machines %}
+        <button class="mach-btn {% if loop.first %}active{% endif %}" data-machine="{{ machine }}">
+          <span class="mach-ico">⚙</span>
+          <div class="mach-inf">
+            <div class="mach-n">{{ machine }}</div>
+            <div class="mach-d" id="md-{{ loop.index }}">—</div>
+          </div>
+          <span class="mach-chk">✓</span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="sb-sec">
+      <div class="sb-lbl">Machine Image <span class="opt-tag">OPTIONAL · AI VISION</span></div>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-inp" accept="image/*" style="display:none"/>
+        <div id="upload-prom" onclick="document.getElementById('file-inp').click()">
+          <div class="upload-ico">🖼️</div>
+          <div class="upload-t">Drop image or <strong>click to upload</strong><br/>for AI visual damage analysis</div>
+          <div class="upload-s">PNG · JPG · WEBP · MAX 16MB</div>
+        </div>
+        <div id="prev-wrap" style="display:none">
+          <img id="prev-img" alt="Machine"/>
+          <div class="prev-bar">
+            <span class="prev-tag">✓ AI VISION READY</span>
+            <button class="prev-rm" onclick="clearImg()">✕ Remove</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sb-sec" style="flex:1">
+      <div class="sb-lbl">Sensor Inputs</div>
+      <div class="s-meta" id="s-meta">Select a machine type above</div>
+      <div class="s-grid" id="s-grid"></div>
+    </div>
+
+    <div class="sb-sec">
+      <button class="btn-run" id="btn-run" onclick="runAnalysis()">
+        ▶ &nbsp;RUN ANALYSIS
+      </button>
+      <div class="btn-hint" id="btn-hint">Enter at least one sensor value to begin</div>
+    </div>
+
+  </aside>
+
+  <!-- ════ CONTENT ════ -->
+  <main class="content">
+    <div class="c-topbar">
+      <div>
+        <div class="c-title" id="c-title">Machine Health Dashboard</div>
+        <div class="c-meta" id="c-meta">Awaiting analysis · Select machine and enter sensor values</div>
+      </div>
+      <div class="live-pill standby" id="live-pill">STANDBY</div>
+    </div>
+
+    <!-- Idle -->
+    <div class="state" id="st-idle">
+      <div class="idle-c">
+        <div class="idle-rings">
+          <div class="ring ring1"></div><div class="ring ring2"></div><div class="ring ring3"></div>
+          <div class="ring-core">IIQ</div>
+        </div>
+        <div class="idle-h">Ready to Analyze</div>
+        <div class="idle-p">Pick a machine type → enter sensor readings<br/>→ optionally upload an image → run analysis</div>
+        <div class="idle-chips">
+          <div class="chip"><span class="chdot" style="background:var(--accent)"></span>Gemini AI Vision</div>
+          <div class="chip"><span class="chdot" style="background:var(--green)"></span>Sensor Logic</div>
+          <div class="chip"><span class="chdot" style="background:var(--purple)"></span>Damage Detection</div>
+          <div class="chip"><span class="chdot" style="background:var(--yellow)"></span>Multi-Model Fallback</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="state" id="st-loading" style="display:none">
+      <div class="load-c">
+        <div class="load-ring"></div>
+        <div class="load-title" id="load-title">Analyzing machine...</div>
+        <div class="load-steps">
+          <div class="lstep" id="ls1"><span class="ldot"></span>Initializing analysis pipeline</div>
+          <div class="lstep" id="ls2"><span class="ldot"></span>Evaluating sensor thresholds</div>
+          <div class="lstep" id="ls3"><span class="ldot"></span>AI visual damage inspection</div>
+          <div class="lstep" id="ls4"><span class="ldot"></span>Generating maintenance report</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="res-wrap" id="st-results" style="display:none">
+      <div class="res-inner" id="res-inner"></div>
+    </div>
+
+    <!-- Error -->
+    <div class="state" id="st-error" style="display:none">
+      <div class="err-c">
+        <div class="err-ico">⚠️</div>
+        <div class="err-h">Analysis Failed</div>
+        <div class="err-msg" id="err-msg"></div>
+        <button class="btn-retry" onclick="goIdle()">← Try Again</button>
+      </div>
+    </div>
+  </main>
+</div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   IndustrialIQ Frontend v4
+   Dark/Light theme · Vision summary · Improved UI
+════════════════════════════════════════════ */
+
+// ── Machine icons ──
+const MICO = {'CNC Machine':'⚙️','Conveyor Belt':'🔄','Air Compressor':'💨','Hydraulic Press':'🔩','Industrial Pump':'🌀','Lathe Machine':'🔧','Milling Machine':'⚒️','Industrial Robot':'🤖'};
+
+// ── Sensor icons ──
+const SICO = {
+  temp:    `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>`,
+  vib:     `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+  rpm:     `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`,
+  current: `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>`,
+  pressure:`<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>`,
+  flow:    `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>`,
+  speed:   `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>`,
+  weight:  `<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 100 6 3 3 0 000-6zM5 10l-2 11h18L19 10H5z"/></svg>`,
+};
+
+// ── Color helpers ──
+const C = {
+  risk:   r => r==='LOW RISK'?'var(--green)':r==='MODERATE RISK'?'var(--yellow)':r==='HIGH RISK'?'var(--orange)':'var(--red)',
+  rBg:    r => r==='LOW RISK'?'var(--gdim)':r==='MODERATE RISK'?'var(--ydim)':r==='HIGH RISK'?'var(--odim)':'var(--rdim)',
+  rBrd:   r => r==='LOW RISK'?'rgba(16,217,138,.45)':r==='MODERATE RISK'?'rgba(245,197,24,.45)':r==='HIGH RISK'?'rgba(255,124,42,.45)':'rgba(255,59,92,.45)',
+  kc:     r => r==='LOW RISK'?'kpi-green':r==='MODERATE RISK'?'kpi-yellow':r==='HIGH RISK'?'kpi-orange':'kpi-red',
+  st:     s => s==='CRITICAL'?'var(--red)':s==='WARNING'?'var(--orange)':s==='NORMAL'?'var(--green)':'var(--text3)',
+  stBg:   s => s==='CRITICAL'?'var(--rdim)':s==='WARNING'?'var(--odim)':s==='NORMAL'?'var(--gdim)':'var(--bg4)',
+  pri:    p => ({'IMMEDIATE':'var(--red)','URGENT':'var(--orange)','SOON':'var(--yellow)','PLANNED':'var(--teal)','ROUTINE':'var(--green)'})[p]||'var(--accent2)',
+  sev:    s => ({'CRITICAL':'var(--red)','HIGH':'var(--orange)','MEDIUM':'var(--yellow)','LOW':'var(--green)'})[s]||'var(--text3)',
+  cond:   c => ({'GOOD':'var(--green)','FAIR':'var(--yellow)','POOR':'var(--orange)','CRITICAL':'var(--red)','UNKNOWN':'var(--text3)'})[c]||'var(--text3)',
+  condTag:c => ({'GOOD':'tag-green','FAIR':'tag-yellow','POOR':'tag-orange','CRITICAL':'tag-red','UNKNOWN':'tag-accent'})[c]||'tag-accent',
+};
+
+// ── State ──
+let curMachine=null, curSensors={}, selFile=null, sessN=0;
+
+// ── Clock ──
+function tick(){ document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-GB',{hour12:false}); }
+tick(); setInterval(tick,1000);
+
+function bumpSess(){
+  document.getElementById('sess-tag').textContent='SESSION '+String(++sessN).padStart(2,'0');
+}
+
+// ── Theme toggle ──
+function toggleTheme(){
+  const html=document.documentElement;
+  html.dataset.theme = html.dataset.theme==='dark' ? 'light' : 'dark';
+  localStorage.setItem('iiq-theme', html.dataset.theme);
+}
+// Restore saved theme
+(function(){ const t=localStorage.getItem('iiq-theme'); if(t) document.documentElement.dataset.theme=t; })();
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded',()=>{
+  // Set machine icons
+  document.querySelectorAll('.mach-btn').forEach(btn=>{
+    btn.querySelector('.mach-ico').textContent = MICO[btn.dataset.machine]||'⚙';
+  });
+  // Machine click
+  document.getElementById('mach-list').addEventListener('click',e=>{
+    const btn=e.target.closest('.mach-btn'); if(!btn) return;
+    document.querySelectorAll('.mach-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadMachine(btn.dataset.machine);
+  });
+  // File upload
+  const fi=document.getElementById('file-inp');
+  fi.addEventListener('change',()=>setFile(fi.files[0]));
+  const uz=document.getElementById('upload-zone');
+  uz.addEventListener('dragover',e=>{e.preventDefault();uz.style.borderColor='var(--accent)'});
+  uz.addEventListener('dragleave',()=>uz.style.borderColor='');
+  uz.addEventListener('drop',e=>{e.preventDefault();uz.style.borderColor='';const f=e.dataTransfer.files[0];if(f)setFile(f)});
+  // Load first machine
+  const first=document.querySelector('.mach-btn');
+  if(first) loadMachine(first.dataset.machine);
+});
+
+async function loadMachine(name){
+  if(curMachine===name) return;
+  curMachine=name;
+  document.getElementById('s-grid').innerHTML=`<div style="grid-column:1/-1;font-family:var(--mono);font-size:10px;color:var(--text3);padding:10px;text-align:center">Loading...</div>`;
+  try{
+    const r=await fetch(`/api/machine-sensors/${encodeURIComponent(name)}`);
+    const d=await r.json();
+    curSensors=d.sensors;
+    const cnt=Object.keys(d.sensors).length;
+    document.getElementById('sens-cnt').textContent=cnt+' SENSORS';
+    document.getElementById('s-meta').textContent=d.description;
+    document.querySelectorAll('.mach-btn').forEach((btn,i)=>{
+      if(btn.dataset.machine===name){ const de=btn.querySelector('.mach-d'); if(de) de.textContent=d.description; }
+    });
+    buildSGrid(d.sensors);
+    document.getElementById('c-title').textContent=name+' — Health Dashboard';
+  } catch(e){
+    document.getElementById('s-grid').innerHTML=`<div style="grid-column:1/-1;color:var(--red);font-family:var(--mono);font-size:10px;padding:10px">Error: ${e.message}</div>`;
+  }
+}
+
+function buildSGrid(sensors){
+  const g=document.getElementById('s-grid'); g.innerHTML='';
+  for(const [key,s] of Object.entries(sensors)){
+    const c=document.createElement('div'); c.className='s-card';
+    c.innerHTML=`<div class="s-lbl">${SICO[s.icon]||''} ${s.label}</div>
+      <input class="s-inp" type="number" id="s-${key}" name="${key}" placeholder="${s.placeholder}" step="any"/>
+      <div class="s-unit">${s.unit}</div>`;
+    g.appendChild(c);
+  }
+}
+
+function setFile(f){
+  if(!f) return; selFile=f;
+  const rd=new FileReader();
+  rd.onload=e=>{
+    document.getElementById('prev-img').src=e.target.result;
+    document.getElementById('upload-prom').style.display='none';
+    document.getElementById('prev-wrap').style.display='block';
+    document.getElementById('upload-zone').classList.add('has-file');
+  };
+  rd.readAsDataURL(f);
+}
+function clearImg(){
+  selFile=null;
+  document.getElementById('file-inp').value='';
+  document.getElementById('prev-wrap').style.display='none';
+  document.getElementById('upload-prom').style.display='flex';
+  document.getElementById('prev-img').src='';
+  document.getElementById('upload-zone').classList.remove('has-file');
+}
+
+function showState(name){
+  const map={idle:'st-idle',loading:'st-loading',results:'st-results',error:'st-error'};
+  const types={idle:'flex',loading:'flex',results:'block',error:'flex'};
+  Object.entries(map).forEach(([k,id])=>{
+    document.getElementById(id).style.display = k===name ? types[k] : 'none';
+  });
+}
+function goIdle(){ showState('idle'); setPill('standby'); document.getElementById('btn-run').disabled=false; document.getElementById('c-meta').textContent='Awaiting analysis'; }
+function setPill(m){
+  const p=document.getElementById('live-pill');
+  p.className='live-pill';
+  if(m==='live'){p.classList.add('live');p.textContent='LIVE'}
+  else if(m==='busy'){p.classList.add('busy');p.textContent='ANALYZING'}
+  else{p.classList.add('standby');p.textContent='STANDBY'}
+}
+
+let _lt=null;
+function startLoad(){
+  ['ls1','ls2','ls3','ls4'].forEach(id=>document.getElementById(id).className='lstep');
+  document.getElementById('ls1').classList.add('active');
+  let i=0;
+  _lt=setInterval(()=>{
+    if(i>0&&i<=4) document.getElementById('ls'+i).classList.replace('active','done');
+    if(i<4) document.getElementById('ls'+(i+1)).classList.add('active');
+    if(++i>4) clearInterval(_lt);
+  },1000);
+}
+
+async function runAnalysis(){
+  if(!curMachine){alert('Select a machine type first.');return;}
+  const keys=Object.keys(curSensors);
+  const hasAny=keys.some(k=>{const e=document.getElementById('s-'+k);return e&&e.value.trim()!=='';});
+  if(!hasAny){alert('Enter at least one sensor value.');return;}
+
+  bumpSess();
+  document.getElementById('btn-run').disabled=true;
+  document.getElementById('load-title').textContent='Analyzing '+curMachine+'...';
+  setPill('busy'); showState('loading'); startLoad();
+
+  try{
+    const fd=new FormData();
+    fd.append('machine_type',curMachine);
+    keys.forEach(k=>{const e=document.getElementById('s-'+k);if(e&&e.value.trim()) fd.append(k,e.value.trim());});
+    if(selFile) fd.append('image',selFile);
+
+    const res=await fetch('/api/analyze',{method:'POST',body:fd});
+    const data=await res.json();
+    clearInterval(_lt);
+    ['ls1','ls2','ls3','ls4'].forEach(id=>document.getElementById(id).classList.add('done'));
+    await new Promise(r=>setTimeout(r,300));
+
+    if(!res.ok||data.error){showErr(data.error||'Server error.');return;}
+    renderResults(data);
+  } catch(e){
+    clearInterval(_lt); showErr('Network error: '+e.message);
+  }
+}
+
+function showErr(msg){
+  document.getElementById('err-msg').textContent=msg;
+  showState('error'); setPill('standby');
+  document.getElementById('btn-run').disabled=false;
+}
+
+/* ════════════════════════════════════════════
+   RENDER RESULTS
+════════════════════════════════════════════ */
+function renderResults(d){
+  const {health_score,risk_level,machine_type,crit_count,warn_count,
+         statuses,issues,recommendations,ai_report,sensor_data,
+         sensor_display,has_image,model_used,vision_data,vision_model,report_id}=d;
+
+  const rc=C.risk(risk_level), rb=C.rBg(risk_level), rbrd=C.rBrd(risk_level);
+  const circ=282.7, fill=circ*(health_score/100), gap=circ-fill;
+  const active=Object.entries(sensor_data).filter(([,v])=>v!==null&&v!=='');
+
+  let h='';
+  if(report_id){
+    h+=`<div class="card" style="border-color:rgba(16,217,138,0.3);background:rgba(16,217,138,0.05);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">💾</span>
+        <span style="font-size:12px;color:var(--text2)">Analysis saved as Report <strong>#${report_id}</strong>.</span>
+      </div>
+      <a href="/reports?id=${report_id}" class="tag tag-accent" style="margin-left:auto;text-decoration:none;padding:5px 12px;font-weight:700">VIEW SAVED REPORT →</a>
+    </div>`;
+  }
+
+  // ── KPI row ──
+  h+=`<div class="kpi-row">
+    <div class="kpi ${C.kc(risk_level)}">
+      <div class="kpi-lbl">Health Score</div>
+      <div class="kpi-val" id="kpi-score" style="color:${rc}">0%</div>
+      <div class="kpi-sub">${risk_level}</div>
+    </div>
+    <div class="kpi kpi-red">
+      <div class="kpi-lbl">Critical Alerts</div>
+      <div class="kpi-val" style="color:var(--red)">${crit_count}</div>
+      <div class="kpi-sub">Sensors in critical range</div>
+    </div>
+    <div class="kpi kpi-yellow">
+      <div class="kpi-lbl">Warnings</div>
+      <div class="kpi-val" style="color:var(--yellow)">${warn_count}</div>
+      <div class="kpi-sub">Sensors in warning range</div>
+    </div>
+    <div class="kpi kpi-accent">
+      <div class="kpi-lbl">Sensors Active</div>
+      <div class="kpi-val" style="color:var(--accent2)">${active.length}</div>
+      <div class="kpi-sub">${has_image?'+ Visual AI inspection':'Sensor-only mode'}</div>
+    </div>
+  </div>`;
+
+  // ── Middle row: gauge + sensor bars ──
+  h+=`<div class="mid-row">
+    <div class="card">
+      <div class="gauge-card-inner">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);font-family:var(--mono)">Machine Health</div>
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 150 150">
+            <circle class="g-bg" cx="75" cy="75" r="45"/>
+            <circle class="g-fg" cx="75" cy="75" r="45" stroke="${rc}"
+              stroke-dasharray="${fill} ${gap}" stroke-dashoffset="0"/>
+          </svg>
+          <div class="gauge-ctr">
+            <div class="gauge-pct" id="g-pct" style="color:${rc}">0%</div>
+            <div class="gauge-sub">HEALTH</div>
+          </div>
+        </div>
+        <div class="gauge-risk" style="background:${rb};color:${rc};border-color:${rbrd}">● ${risk_level}</div>
+        <div class="gauge-machine">${machine_type}</div>
+        <div class="gauge-counts">${crit_count} CRITICAL · ${warn_count} WARNING<br/>${active.length-crit_count-warn_count} NORMAL</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bars-inner">
+        <div class="card-lbl">Sensor Parameter Load</div>`;
+  active.forEach(([key,val])=>{
+    const disp=sensor_display[key]||{label:key,unit:''};
+    const st=statuses[key]||'NORMAL';
+    const sc=C.st(st), sb=C.stBg(st);
+    const sdef=curSensors[key];
+    const maxV=sdef?Math.max(sdef.crit[0],sdef.crit[1])*1.1:100;
+    const pct=Math.min(100,(parseFloat(val)/maxV)*100).toFixed(1);
+    h+=`<div class="bar-row">
+      <div class="bar-name">${disp.label}</div>
+      <div class="bar-track"><div class="bar-fill" data-pct="${pct}" style="background:${sc}"></div></div>
+      <div class="bar-val" style="color:${sc}">${val} ${disp.unit}</div>
+      <div class="bar-badge" style="color:${sc};background:${sb}">${st}</div>
+    </div>`;
+  });
+  h+=`</div></div></div>`;
+
+  // ── AI Vision Summary Card (if image uploaded) ──
+  if(has_image && vision_data){
+    const vd=vision_data;
+    const cond=vd.machine_condition||'UNKNOWN';
+    const condColor=C.cond(cond);
+    const condTag=C.condTag(cond);
+    const defects=vd.defects_found||[];
+    const actions=vd.manager_actions||[];
+
+    h+=`<div class="card">
+      <div class="card-head">
+        <span class="card-head-ico">📸</span>
+        <span class="card-head-lbl">AI Visual Inspection Report</span>
+        <div class="card-head-right">
+          ${vd.immediate_safety_concern?'<span class="tag tag-red">⚠ SAFETY CONCERN</span>':''}
+          <span class="tag ${condTag}">${cond} CONDITION</span>
+          <span class="tag tag-purple">${vision_model||'gemini'}</span>
+        </div>
+      </div>
+      <div class="vision-grid">
+        <div class="vision-left">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);font-family:var(--mono);margin-bottom:10px">What the AI Sees</div>
+          <div class="vis-summary">${esc(vd.overall_visual_summary||'No visual summary available.')}</div>
+          <div class="vis-meta-row">
+            <div class="vis-meta">
+              <div class="vis-meta-lbl">Machine Identified</div>
+              <div class="vis-meta-val">${esc(vd.machine_identified||'Unknown')}</div>
+            </div>
+            <div class="vis-meta">
+              <div class="vis-meta-lbl">Cleanliness</div>
+              <div class="vis-meta-val">${esc(vd.cleanliness||'—')}</div>
+            </div>
+            <div class="vis-meta">
+              <div class="vis-meta-lbl">Visible Wear</div>
+              <div class="vis-meta-val">${esc(vd.visible_wear_level||'—')}</div>
+            </div>
+            <div class="vis-meta">
+              <div class="vis-meta-lbl">Est. Remaining Life</div>
+              <div class="vis-meta-val" style="color:${condColor}">${esc(vd.estimated_remaining_life||'—')}</div>
+            </div>
+          </div>
+          ${actions.length>0?`
+          <div class="vis-actions-title">Manager Actions Required</div>
+          ${actions.map((a,i)=>`<div class="vis-action">
+            <div class="vis-action-n">${i+1}</div>
+            <div class="vis-action-t">${esc(a)}</div>
+          </div>`).join('')}
+          `:''}
+        </div>
+        <div class="vision-right">
+          <div class="defects-title">Detected Defects (${defects.length})</div>
+          ${defects.length===0
+            ? `<div class="no-defects" style="color:var(--green)">✓ No visible defects detected in the image</div>`
+            : defects.map(df=>`
+            <div class="defect-item">
+              <div style="flex:1">
+                <div class="defect-sev" style="color:${C.sev(df.severity)}">${df.severity||'?'} SEVERITY</div>
+                <div class="defect-name">${esc(df.defect_type||'Unknown Defect')}</div>
+                <div class="defect-loc">📍 ${esc(df.location||'Unknown location')}</div>
+                <div class="defect-desc">${esc(df.description||'')}</div>
+              </div>
+              <span class="tag" style="color:${C.sev(df.severity)};background:${C.sev(df.severity).replace(')',', 0.12)').replace('var(','rgba(').replace(')',')')};border-color:${C.sev(df.severity).replace(')',', 0.35)').replace('var(','rgba(').replace(')',')')};flex-shrink:0;height:fit-content">${df.severity}</span>
+            </div>`).join('')
+          }
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // ── Issues + Recommendations ──
+  h+=`<div class="bottom-row">
+    <div class="card">
+      <div class="card-head"><span class="card-head-ico">🔍</span><span class="card-head-lbl">Detected Issues</span><div class="card-head-right"><span class="tag tag-accent">${issues.length} FOUND</span></div></div>
+      <div style="padding:14px 16px">`;
+  if(issues.length===0){
+    h+=`<div class="issue-item ok"><div class="issue-lv" style="color:var(--green)">ALL CLEAR</div><div class="issue-name">All Sensors Normal</div><div class="issue-desc">All parameters within safe thresholds for ${machine_type}.</div></div>`;
+  } else {
+    issues.forEach(iss=>{
+      const col=iss.level==='critical'?'var(--red)':'var(--orange)';
+      h+=`<div class="issue-item ${iss.level==='critical'?'crit':'warn'}">
+        <div class="issue-lv" style="color:${col}">${iss.level.toUpperCase()}</div>
+        <div class="issue-name">${esc(iss.label||iss.parameter)}</div>
+        <div class="issue-desc">${esc(iss.message)}</div>
+      </div>`;
+    });
+  }
+  h+=`</div></div>
+    <div class="card">
+      <div class="card-head"><span class="card-head-ico">🔧</span><span class="card-head-lbl">Maintenance Actions</span><div class="card-head-right"><span class="tag tag-accent">${recommendations.length} TASKS</span></div></div>
+      <div style="padding:14px 16px">`;
+  const priC={'IMMEDIATE':'var(--red)','URGENT':'var(--orange)','SOON':'var(--yellow)','PLANNED':'var(--teal)','ROUTINE':'var(--green)'};
+  recommendations.forEach((rec,i)=>{
+    const pc=priC[rec.priority]||'var(--accent2)';
+    h+=`<div class="rec-item">
+      <div class="rec-n">${i+1}</div>
+      <div class="rec-b">
+        <div class="rec-p" style="color:${pc}">${rec.priority}</div>
+        <div class="rec-a">${esc(rec.action)}</div>
+        <div class="rec-d">${esc(rec.detail)}</div>
+      </div>
+    </div>`;
+  });
+  h+=`</div></div></div>`;
+
+
+
+  const inner=document.getElementById('res-inner');
+  inner.innerHTML=h;
+  document.getElementById('st-results').style.display='block';
+  ['st-idle','st-loading','st-error'].forEach(id=>document.getElementById(id).style.display='none');
+  setPill('live');
+  document.getElementById('btn-run').disabled=false;
+  document.getElementById('c-meta').textContent=`${machine_type} · ${new Date().toLocaleString('en-GB',{hour12:false})} · ${model_used||'gemini'}`;
+
+  // Animations
+  animN('kpi-score',0,health_score,'%',1200);
+  animN('g-pct',0,health_score,'%',1400);
+  setTimeout(()=>{ document.querySelectorAll('.bar-fill[data-pct]').forEach(el=>el.style.width=el.dataset.pct+'%'); },100);
+}
+
+function animN(id,from,to,sfx,dur){
+  const el=document.getElementById(id); if(!el) return;
+  const t0=performance.now();
+  (function f(now){
+    const p=Math.min((now-t0)/dur,1), e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(from+(to-from)*e)+sfx;
+    if(p<1) requestAnimationFrame(f);
+  })(t0);
+}
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>

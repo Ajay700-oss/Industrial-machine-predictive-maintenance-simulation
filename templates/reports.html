@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IndustrialIQ — Machine Health Reports</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ════════════════════════════════════════════
+   THEME VARIABLES
+   ════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --bg:        #0b0f1a;
+  --bg2:       #111827;
+  --bg3:       #1a2236;
+  --bg4:       #202d44;
+  --card:      #131d2e;
+  --card2:     #172035;
+  --border:    rgba(255,255,255,0.08);
+  --border2:   rgba(255,255,255,0.15);
+  --text:      #f0f4ff;
+  --text2:     #94a3c0;
+  --text3:     #4d6080;
+  --shadow:    0 4px 32px rgba(0,0,0,0.5);
+  --shadow2:   0 8px 40px rgba(0,0,0,0.6);
+  --scrollbar: rgba(255,255,255,0.1);
+  --input-bg:  rgba(255,255,255,0.04);
+}
+[data-theme="light"] {
+  --bg:        #f0f4ff;
+  --bg2:       #ffffff;
+  --bg3:       #e8edf8;
+  --bg4:       #d8e0f0;
+  --card:      #ffffff;
+  --card2:     #f5f8ff;
+  --border:    rgba(0,0,0,0.08);
+  --border2:   rgba(0,0,0,0.15);
+  --text:      #0f1729;
+  --text2:     #4a5878;
+  --text3:     #8899bb;
+  --shadow:    0 4px 24px rgba(15,23,42,0.1);
+  --shadow2:   0 8px 40px rgba(15,23,42,0.15);
+  --scrollbar: rgba(0,0,0,0.12);
+  --input-bg:  rgba(0,0,0,0.03);
+}
+:root {
+  --accent:    #4f7cff;
+  --accent2:   #7aa2ff;
+  --adim:      rgba(79,124,255,0.12);
+  --adim2:     rgba(79,124,255,0.22);
+  --green:     #10d98a;
+  --gdim:      rgba(16,217,138,0.12);
+  --yellow:    #f5c518;
+  --ydim:      rgba(245,197,24,0.12);
+  --orange:    #ff7c2a;
+  --odim:      rgba(255,124,42,0.12);
+  --red:       #ff3b5c;
+  --rdim:      rgba(255,59,92,0.12);
+  --teal:      #06c8d0;
+  --tdim:      rgba(6,200,208,0.12);
+  --purple:    #a855f7;
+  --mono:      'JetBrains Mono', monospace;
+  --sans:      'Inter', sans-serif;
+  --r:         12px;
+  --rl:        18px;
+}
+
+/* ════════════════════════════════════════════
+   RESET & BASE
+   ════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; -webkit-font-smoothing: antialiased; transition: background .3s, color .3s; }
+button { font-family: var(--sans); cursor: pointer; border: none; background: none; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 4px; }
+a { text-decoration: none; color: inherit; }
+
+/* ════════════════════════════════════════════
+   APP SHELL
+   ════════════════════════════════════════════ */
+.app { display: grid; grid-template-rows: 60px 1fr; height: 100vh; overflow: hidden; }
+
+/* ════════════════════════════════════════════
+   TOPBAR
+   ════════════════════════════════════════════ */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 28px; background: var(--bg2); border-bottom: 1px solid var(--border);
+  position: relative; z-index: 20; box-shadow: var(--shadow);
+}
+.topbar-logo { display: flex; align-items: center; gap: 12px; }
+.logo-mark {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 700; color: #fff; letter-spacing: .04em;
+  box-shadow: 0 0 20px rgba(79,124,255,0.45);
+  flex-shrink: 0;
+}
+.logo-name { font-size: 17px; font-weight: 800; letter-spacing: -.01em; }
+.logo-name span { color: var(--accent2); }
+.logo-sub { font-size: 9px; color: var(--text3); font-family: var(--mono); letter-spacing: .12em; margin-top: 1px; }
+.topbar-nav { display: flex; align-items: center; gap: 4px; }
+.nav-tab { padding: 7px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text3); cursor: pointer; transition: all .18s; border: 1px solid transparent; }
+.nav-tab:hover { color: var(--text2); background: var(--bg3); }
+.nav-tab.active { color: var(--accent2); background: var(--adim); border-color: rgba(79,124,255,.25); }
+.topbar-right { display: flex; align-items: center; gap: 14px; }
+.sys-online { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: .1em; }
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulseAnim 2s ease-in-out infinite; flex-shrink: 0; }
+@keyframes pulseAnim { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,217,138,.5)} 50%{opacity:.6;box-shadow:0 0 0 5px rgba(16,217,138,0)} }
+.clock-tag { font-family: var(--mono); font-size: 11px; color: var(--text2); background: var(--bg3); padding: 5px 12px; border-radius: 8px; border: 1px solid var(--border); letter-spacing: .06em; }
+
+/* Theme toggle */
+.theme-toggle {
+  width: 40px; height: 22px; border-radius: 11px; border: 1px solid var(--border2);
+  background: var(--bg3); cursor: pointer; position: relative; transition: background .3s;
+  flex-shrink: 0;
+}
+.theme-toggle-knob {
+  width: 16px; height: 16px; border-radius: 50%; position: absolute; top: 2px;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  transition: left .3s; left: 2px;
+}
+[data-theme="light"] .theme-toggle-knob { left: 20px; }
+.theme-toggle-icon { font-size: 10px; position: absolute; top: 50%; transform: translateY(-50%); }
+.theme-toggle-icon.moon { left: 5px; }
+.theme-toggle-icon.sun  { right: 5px; }
+
+/* ════════════════════════════════════════════
+   MAIN LAYOUT
+   ════════════════════════════════════════════ */
+.main-layout { display: grid; grid-template-columns: 340px 1fr; overflow: hidden; height: 100%; }
+
+/* ════════════════════════════════════════════
+   SIDEBAR
+   ════════════════════════════════════════════ */
+.sidebar { background: var(--bg2); border-right: 1px solid var(--border); overflow-y: hidden; display: flex; flex-direction: column; }
+.sb-sec { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+.sb-lbl { font-size: 10px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); display: flex; align-items: center; justify-content: space-between; margin-bottom: 11px; }
+.sb-badge { font-size: 9px; color: var(--accent2); background: var(--adim); padding: 2px 8px; border-radius: 10px; border: 1px solid rgba(79,124,255,.25); letter-spacing: .1em; font-weight: 600; }
+
+.search-box {
+  width: 100%; padding: 10px 12px; background: var(--input-bg); border: 1px solid var(--border);
+  border-radius: 8px; font-size: 12px; color: var(--text); outline: none; transition: border-color .2s;
+  font-family: var(--sans);
+}
+.search-box:focus { border-color: rgba(79,124,255,.5); }
+
+/* Timeline list */
+.timeline-wrap { flex: 1; overflow-y: auto; padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; }
+.report-card {
+  display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: var(--r);
+  border: 1px solid var(--border); background: var(--bg3); cursor: pointer; transition: all .2s;
+  text-align: left; width: 100%;
+}
+.report-card:hover { border-color: var(--border2); background: var(--bg4); transform: translateY(-1px); }
+.report-card.active { border-color: rgba(79,124,255,.5); background: var(--adim); box-shadow: 0 0 16px rgba(79,124,255,0.08); }
+.rc-header { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+.rc-machine { font-size: 13px; font-weight: 700; color: var(--text); }
+.rc-date { font-family: var(--mono); font-size: 9px; color: var(--text3); margin-top: 3px; }
+.rc-score-badge { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+.rc-delete-btn {
+  background: none !important;
+  border: none !important;
+  color: var(--text3) !important;
+  cursor: pointer;
+  padding: 4px 6px !important;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0;
+  font-size: 11px;
+}
+.report-card:hover .rc-delete-btn {
+  opacity: 0.7;
+}
+.report-card:hover .rc-delete-btn:hover {
+  opacity: 1;
+  color: var(--red) !important;
+  background: var(--rdim) !important;
+}
+
+/* ════════════════════════════════════════════
+   CONTENT AREA
+   ════════════════════════════════════════════ */
+.content { display: flex; flex-direction: column; overflow: hidden; background: var(--bg); }
+.c-topbar {
+  padding: 14px 26px; border-bottom: 1px solid var(--border); background: var(--bg2);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.c-title { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+.c-meta { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-top: 3px; letter-spacing: .04em; }
+
+.action-btns { display: flex; gap: 8px; }
+.btn-action {
+  font-family: var(--sans); font-size: 11px; font-weight: 600; padding: 6px 14px;
+  border-radius: 8px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--border);
+  transition: all .18s; cursor: pointer;
+}
+.btn-action.delete { color: var(--red); background: var(--rdim); border-color: rgba(255,59,92,0.25); }
+.btn-action.delete:hover { background: var(--red); color: #fff; border-color: var(--red); }
+.btn-action.print { color: var(--text2); background: var(--bg3); }
+.btn-action.print:hover { border-color: var(--border2); color: var(--text); }
+
+/* ════════════════════════════════════════════
+   STATE CONTAINERS
+   ════════════════════════════════════════════ */
+.state { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; }
+.res-wrap { flex: 1; overflow-y: auto; padding: 22px 26px; }
+
+/* Idle Rings */
+.idle-c { display: flex; flex-direction: column; align-items: center; gap: 18px; text-align: center; }
+.idle-rings { position: relative; width: 110px; height: 110px; margin-bottom: 6px; }
+.ring { position: absolute; border-radius: 50%; border: 1px solid; animation: ringRotate linear infinite; }
+.ring1 { inset: 0;   border-color: rgba(79,124,255,.3); animation-duration: 10s; }
+.ring2 { inset: 16px; border-color: rgba(79,124,255,.18); animation-duration: 7s; animation-direction: reverse; }
+.ring3 { inset: 32px; border-color: rgba(79,124,255,.1); animation-duration: 14s; }
+.ring-core { position: absolute; inset: 42px; border-radius: 50%; background: var(--adim); border: 1px solid rgba(79,124,255,.4); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; color: var(--accent2); font-weight: 700; letter-spacing: .05em; }
+@keyframes ringRotate { to { transform: rotate(360deg); } }
+.idle-h { font-size: 20px; font-weight: 700; color: var(--text2); }
+.idle-p { font-size: 13px; color: var(--text3); line-height: 1.8; font-family: var(--mono); max-width: 400px; }
+
+/* Loading */
+.load-ring { width: 56px; height: 56px; border-radius: 50%; border: 3px solid var(--bg3); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Results styles */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--rl); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 16px; }
+.card:last-child { margin-bottom: 0; }
+.card-head { padding: 13px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--card2); }
+.card-head-ico { font-size: 16px; }
+.card-head-lbl { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); }
+.card-head-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+.tag { font-family: var(--mono); font-size: 9px; padding: 3px 9px; border-radius: 20px; font-weight: 600; letter-spacing: .1em; border: 1px solid; }
+.tag-green  { color: var(--green);  background: var(--gdim);  border-color: rgba(16,217,138,.35); }
+.tag-yellow { color: var(--yellow); background: var(--ydim);  border-color: rgba(245,197,24,.35); }
+.tag-orange { color: var(--orange); background: var(--odim);  border-color: rgba(255,124,42,.35); }
+.tag-red    { color: var(--red);    background: var(--rdim);  border-color: rgba(255,59,92,.35); }
+.tag-accent { color: var(--accent2);background: var(--adim);  border-color: rgba(79,124,255,.35); }
+.tag-purple { color: var(--purple); background: rgba(168,85,247,.12); border-color: rgba(168,85,247,.35); }
+
+/* KPI widgets */
+.kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--card); border: 1px solid var(--border); border-radius: var(--rl); padding: 18px 20px; position: relative; overflow: hidden; box-shadow: var(--shadow); }
+.kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius: var(--rl) var(--rl) 0 0; }
+.kpi-green::before  { background: var(--green); }
+.kpi-yellow::before { background: var(--yellow); }
+.kpi-red::before    { background: var(--red); }
+.kpi-orange::before { background: var(--orange); }
+.kpi-accent::before { background: var(--accent); }
+.kpi-lbl { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 8px; }
+.kpi-val { font-family: var(--mono); font-size: 30px; font-weight: 800; line-height: 1; }
+.kpi-sub { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+/* Double columns */
+.details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+
+/* Left detail card */
+.detail-col-inner { display: flex; flex-direction: column; gap: 14px; }
+.img-card-wrap { display: flex; flex-direction: column; width: 100%; border-radius: var(--r); overflow: hidden; border: 1px solid var(--border); }
+.damage-img { width: 100%; max-height: 250px; object-fit: contain; background: #000; display: block; }
+.damage-img-empty { height: 120px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text3); background: var(--bg3); font-family: var(--mono); font-size: 11px; }
+
+/* Vision Summary Layout */
+.vision-summary-block { padding: 20px; }
+.vis-summary { font-size: 13px; color: var(--text2); line-height: 1.8; margin-bottom: 14px; }
+.vis-meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.vis-meta { display: flex; flex-direction: column; gap: 3px; }
+.vis-meta-lbl { font-size: 8px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); }
+.vis-meta-val { font-size: 13px; font-weight: 600; color: var(--text); }
+.vis-actions-title { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 10px; }
+.vis-action { display: flex; gap: 10px; margin-bottom: 8px; align-items: flex-start; }
+.vis-action-n { width: 20px; height: 20px; border-radius: 5px; background: var(--adim); border: 1px solid rgba(79,124,255,.3); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 9px; color: var(--accent2); font-weight: 700; flex-shrink: 0; }
+.vis-action-t { font-size: 12px; color: var(--text2); line-height: 1.6; }
+
+/* Defects list */
+.defects-title { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 10px; }
+.defect-item { display: flex; gap: 12px; margin-bottom: 9px; padding: 11px 13px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg3); }
+.defect-sev { font-size: 8px; font-family: var(--mono); font-weight: 700; letter-spacing: .12em; margin-bottom: 3px; }
+.defect-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.defect-loc  { font-size: 10px; color: var(--text3); font-family: var(--mono); margin-bottom: 4px; }
+.defect-desc { font-size: 11px; color: var(--text2); line-height: 1.5; }
+.no-defects { text-align: center; padding: 16px; color: var(--text3); font-family: var(--mono); font-size: 12px; }
+
+/* Sensor Bars */
+.bars-inner { padding: 18px 20px; }
+.card-lbl { font-size: 10px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 14px; }
+.bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; }
+.bar-row:last-child { margin-bottom: 0; }
+.bar-name { width: 115px; font-size: 11px; color: var(--text3); font-family: var(--mono); text-align: right; flex-shrink: 0; }
+.bar-track { flex: 1; height: 7px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; width: 0%; transition: width 1s ease-out; }
+.bar-val { width: 80px; font-size: 11px; font-family: var(--mono); color: var(--text2); text-align: right; flex-shrink: 0; }
+.bar-badge { width: 72px; font-size: 8px; font-family: var(--mono); font-weight: 700; letter-spacing: .1em; padding: 3px 8px; border-radius: 5px; text-align: center; flex-shrink: 0; }
+
+/* Recommendations list */
+.rec-list { padding: 16px; }
+.rec-item { display: flex; gap: 11px; margin-bottom: 8px; padding: 11px 13px; background: var(--bg3); border-radius: 10px; border: 1px solid var(--border); }
+.rec-item:last-child { margin-bottom: 0; }
+.rec-n { font-family: var(--mono); font-size: 10px; color: var(--accent2); background: var(--adim); width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; border: 1px solid rgba(79,124,255,.25); }
+.rec-b { flex: 1; }
+.rec-p { font-size: 9px; font-family: var(--mono); font-weight: 700; letter-spacing: .12em; margin-bottom: 3px; }
+.rec-a { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.rec-d { font-size: 11px; color: var(--text2); line-height: 1.6; }
+
+/* Previous Condition Card */
+.prev-condition-card { padding: 18px 20px; }
+.prev-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.prev-date { font-family: var(--mono); font-size: 10px; color: var(--text3); }
+.prev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.prev-stat { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+.prev-stat-lbl { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text3); font-family: var(--mono); margin-bottom: 4px; }
+.prev-stat-val { font-size: 16px; font-weight: 700; color: var(--text2); }
+.prev-diff-badge { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; display: inline-block; margin-top: 8px; }
+.prev-empty-state { text-align: center; padding: 16px; color: var(--text3); font-family: var(--mono); font-size: 11px; }
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.animated-view { animation: fadeUp .3s ease; }
+
+@media(max-width:992px){
+  .main-layout { grid-template-columns: 1fr; }
+  .sidebar { display: none; } /* On mobile, we can toggle or hide */
+  .details-grid { grid-template-columns: 1fr; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-mark">IIQ</div>
+    <div>
+      <div class="logo-name">Industrial<span>IQ</span></div>
+      <div class="logo-sub">PREDICTIVE MAINTENANCE SYSTEM</div>
+    </div>
+  </div>
+
+  <div class="topbar-nav">
+    <a href="/" class="nav-tab" style="text-decoration:none">Overview</a>
+    <a href="/sensors" class="nav-tab" style="text-decoration:none">Sensors</a>
+    <a href="/reports" class="nav-tab active" style="text-decoration:none">Reports</a>
+    <a href="/reports" class="nav-tab" style="text-decoration:none">History</a>
+  </div>
+
+  <div class="topbar-right">
+    <div class="sys-online"><span class="pulse"></span>ONLINE</div>
+    <div class="clock-tag" id="clock">--:--:--</div>
+    <!-- Theme toggle -->
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+      <div class="theme-toggle-knob"></div>
+      <span class="theme-toggle-icon moon">🌙</span>
+      <span class="theme-toggle-icon sun">☀️</span>
+    </button>
+  </div>
+</header>
+
+<!-- ══ MAIN ══ -->
+<div class="main-layout">
+
+  <!-- ════ SIDEBAR (Reports Timeline) ════ -->
+  <aside class="sidebar">
+    <div class="sb-sec">
+      <div class="sb-lbl">Reports Timeline <span class="sb-badge" id="report-cnt">0</span></div>
+      <input type="text" id="report-search" class="search-box" placeholder="Filter machine or risk level..." onkeyup="filterReports()"/>
+    </div>
+    <div class="timeline-wrap" id="timeline-wrap">
+      <!-- Dynamic list -->
+    </div>
+  </aside>
+
+  <!-- ════ CONTENT ════ -->
+  <main class="content">
+    <div class="c-topbar">
+      <div>
+        <div class="c-title" id="c-title">Machine Report Archive</div>
+        <div class="c-meta" id="c-meta">Select a report from the list to view diagnostic analysis</div>
+      </div>
+      <div class="action-btns" id="action-btns" style="display:none">
+        <button class="btn-action print" onclick="window.print()">🖨️ Print Report</button>
+        <button class="btn-action delete" id="btn-delete" onclick="triggerDeleteReport()">🗑️ Delete</button>
+      </div>
+    </div>
+
+    <!-- Idle State -->
+    <div class="state" id="st-idle">
+      <div class="idle-c">
+        <div class="idle-rings">
+          <div class="ring ring1"></div><div class="ring ring2"></div><div class="ring ring3"></div>
+          <div class="ring-core">IIQ</div>
+        </div>
+        <div class="idle-h">Diagnostic Report Archive</div>
+        <div class="idle-p">Select a saved analysis from the timeline on the left to review sensor data, Gemini vision reports, and machine health histories.</div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="state" id="st-loading" style="display:none">
+      <div class="load-ring"></div>
+    </div>
+
+    <!-- Details Pane -->
+    <div class="res-wrap" id="st-details" style="display:none">
+      <div class="animated-view" id="report-details-root">
+        <!-- Dynamic report details injected here -->
+      </div>
+    </div>
+  </main>
+
+</div>
+</div>
+
+<script>
+// ── Core Helpers ──
+const MICO = {'CNC Machine':'⚙️','Conveyor Belt':'🔄','Air Compressor':'💨','Hydraulic Press':'🔩','Industrial Pump':'🌀','Lathe Machine':'🔧','Milling Machine':'⚒️','Industrial Robot':'🤖'};
+
+const C = {
+  risk:   r => r==='LOW RISK'?'var(--green)':r==='MODERATE RISK'?'var(--yellow)':r==='HIGH RISK'?'var(--orange)':'var(--red)',
+  rBg:    r => r==='LOW RISK'?'var(--gdim)':r==='MODERATE RISK'?'var(--ydim)':r==='HIGH RISK'?'var(--odim)':'var(--rdim)',
+  rBrd:   r => r==='LOW RISK'?'rgba(16,217,138,.45)':r==='MODERATE RISK'?'rgba(245,197,24,.45)':r==='HIGH RISK'?'rgba(255,124,42,.45)':'rgba(255,59,92,.45)',
+  kc:     r => r==='LOW RISK'?'kpi-green':r==='MODERATE RISK'?'kpi-yellow':r==='HIGH RISK'?'kpi-orange':'kpi-red',
+  st:     s => s==='CRITICAL'?'var(--red)':s==='WARNING'?'var(--orange)':s==='NORMAL'?'var(--green)':'var(--text3)',
+  stBg:   s => s==='CRITICAL'?'var(--rdim)':s==='WARNING'?'var(--odim)':s==='NORMAL'?'var(--gdim)':'var(--bg4)',
+  pri:    p => ({'IMMEDIATE':'var(--red)','URGENT':'var(--orange)','SOON':'var(--yellow)','PLANNED':'var(--teal)','ROUTINE':'var(--green)'})[p]||'var(--accent2)',
+  sev:    s => ({'CRITICAL':'var(--red)','HIGH':'var(--orange)','MEDIUM':'var(--yellow)','LOW':'var(--green)'})[s]||'var(--text3)',
+  cond:   c => ({'GOOD':'var(--green)','FAIR':'var(--yellow)','POOR':'var(--orange)','CRITICAL':'var(--red)','UNKNOWN':'var(--text3)'})[c]||'var(--text3)',
+  condTag:c => ({'GOOD':'tag-green','FAIR':'tag-yellow','POOR':'tag-orange','CRITICAL':'tag-red','UNKNOWN':'tag-accent'})[c]||'tag-accent',
+};
+
+// ── State ──
+let reportsList = [];
+let currentReportId = null;
+
+// ── Clock ──
+function tick(){ document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-GB',{hour12:false}); }
+tick(); setInterval(tick,1000);
+
+// ── Theme toggle ──
+function toggleTheme(){
+  const html=document.documentElement;
+  html.dataset.theme = html.dataset.theme==='dark' ? 'light' : 'dark';
+  localStorage.setItem('iiq-theme', html.dataset.theme);
+}
+(function(){ const t=localStorage.getItem('iiq-theme'); if(t) document.documentElement.dataset.theme=t; })();
+
+// ── Fetch list and auto-load if ID present ──
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadReportsList();
+  
+  // Parse query param
+  const params = new URLSearchParams(window.location.search);
+  const targetId = params.get('id');
+  if (targetId) {
+    selectReport(parseInt(targetId));
+  } else if (reportsList.length > 0) {
+    selectReport(reportsList[0].id); // Auto-load most recent report
+  }
+});
+
+async function loadReportsList() {
+  try {
+    const res = await fetch('/api/reports');
+    reportsList = await res.json();
+    document.getElementById('report-cnt').textContent = reportsList.length;
+    renderSidebarList(reportsList);
+  } catch (e) {
+    console.error("Failed to load reports list", e);
+  }
+}
+
+function renderSidebarList(list) {
+  const container = document.getElementById('timeline-wrap');
+  container.innerHTML = '';
+  if (list.length === 0) {
+    container.innerHTML = `<div style="text-align:center;font-family:var(--mono);color:var(--text3);font-size:11px;padding:20px 0">No reports saved yet.</div>`;
+    return;
+  }
+  
+  list.forEach(r => {
+    const activeClass = currentReportId === r.id ? 'active' : '';
+    const scoreColor = C.risk(r.risk_level);
+    const scoreBg = C.rBg(r.risk_level);
+    const scoreBrd = C.rBrd(r.risk_level);
+    const formattedDate = new Date(r.timestamp).toLocaleString('en-GB', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    
+    const card = document.createElement('div');
+    card.className = `report-card ${activeClass}`;
+    card.id = `report-c-${r.id}`;
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.onclick = () => selectReport(r.id);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectReport(r.id);
+      }
+    });
+    card.innerHTML = `
+      <div class="rc-header" style="width: 100%">
+        <div>
+          <div class="rc-machine">${MICO[r.machine_type] || '⚙️'} &nbsp;${r.machine_type}</div>
+          <div class="rc-date">Report #${r.id} · ${formattedDate}</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="rc-score-badge" style="color:${scoreColor};background:${scoreBg};border:1px solid ${scoreBrd}">${r.health_score}%</span>
+          <button class="rc-delete-btn" title="Delete Report" onclick="deleteReportDirectly(${r.id}, event)">🗑️</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function filterReports() {
+  const query = document.getElementById('report-search').value.toLowerCase();
+  const filtered = reportsList.filter(r => 
+    r.machine_type.toLowerCase().includes(query) || 
+    r.risk_level.toLowerCase().includes(query) ||
+    String(r.id).includes(query)
+  );
+  renderSidebarList(filtered);
+}
+
+function showState(state) {
+  document.getElementById('st-idle').style.display = state === 'idle' ? 'flex' : 'none';
+  document.getElementById('st-loading').style.display = state === 'loading' ? 'flex' : 'none';
+  document.getElementById('st-details').style.display = state === 'details' ? 'block' : 'none';
+  document.getElementById('action-btns').style.display = state === 'details' ? 'flex' : 'none';
+}
+
+async function selectReport(id) {
+  currentReportId = id;
+  
+  // Highlight in sidebar
+  document.querySelectorAll('.report-card').forEach(c => c.classList.remove('active'));
+  const activeCard = document.getElementById(`report-c-${id}`);
+  if (activeCard) activeCard.classList.add('active');
+  
+  // Update browser address bar query param without page reload
+  const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?id=${id}`;
+  window.history.pushState({ path: newUrl }, '', newUrl);
+
+  showState('loading');
+  
+  try {
+    const res = await fetch(`/api/reports/${id}`);
+    if (!res.ok) {
+      alert("Report not found");
+      showState('idle');
+      return;
+    }
+    const data = await res.json();
+    renderReportDetails(data);
+    showState('details');
+  } catch (e) {
+    console.error("Error loading report details", e);
+    alert("Error loading report details: " + e.message);
+    showState('idle');
+  }
+}
+
+// ── Sensor Range Evaluator (Matches Backend) ──
+function getSensorStatus(value, def) {
+  if (value === null || value === undefined || value === '') return 'N/A';
+  const val = parseFloat(value);
+  const [clo, chi] = def.crit;
+  const [wlo, whi] = def.warn;
+  const low_bad = (clo === 0 && chi < wlo);
+  if (low_bad) {
+    if (val >= clo && val <= chi) return 'CRITICAL';
+    if (val >= wlo && val <= whi) return 'WARNING';
+    return 'NORMAL';
+  } else {
+    if (val >= clo && val <= chi) return 'CRITICAL';
+    if (val >= wlo && val <= whi) return 'WARNING';
+    return 'NORMAL';
+  }
+}
+
+function renderReportDetails(d) {
+  const root = document.getElementById('report-details-root');
+  
+  document.getElementById('c-title').textContent = `${d.machine_type} — Report #${d.id}`;
+  const localTime = new Date(d.timestamp).toLocaleString('en-GB');
+  document.getElementById('c-meta').textContent = `Generated on ${localTime}`;
+
+  const rc = C.risk(d.risk_level), rb = C.rBg(d.risk_level), rbrd = C.rBrd(d.risk_level);
+  
+  // Count manual sensors entered
+  const enteredSensors = Object.entries(d.sensor_data).filter(([,v]) => v !== null && v !== '');
+  let critCount = 0;
+  let warnCount = 0;
+  
+  // Compute sensor statuses based on thresholds
+  const sensorDetailsHtml = enteredSensors.map(([key, val]) => {
+    const def = d.sensor_display[key] || {label: key, unit: '', crit:[0,100], warn:[0,100]};
+    const status = getSensorStatus(val, def);
+    if (status === 'CRITICAL') critCount++;
+    if (status === 'WARNING') warnCount++;
+    
+    const statusColor = C.st(status);
+    const statusBg = C.stBg(status);
+    const maxV = Math.max(def.crit[0], def.crit[1]) * 1.1 || 100;
+    const pct = Math.min(100, (parseFloat(val) / maxV) * 100).toFixed(1);
+
+    return `
+      <div class="bar-row">
+        <div class="bar-name">${def.label}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="background:${statusColor}; width:${pct}%"></div>
+        </div>
+        <div class="bar-val" style="color:${statusColor}">${val} ${def.unit}</div>
+        <div class="bar-badge" style="color:${statusColor};background:${statusBg}">${status}</div>
+      </div>
+    `;
+  }).join('');
+
+  // ── Previous Condition Comparison HTML ──
+  let prevConditionHtml = '';
+  if (d.previous_report) {
+    const prev = d.previous_report;
+    const prevTime = new Date(prev.timestamp).toLocaleDateString('en-GB');
+    const pRiskColor = C.risk(prev.risk_level);
+    const pRiskBg = C.rBg(prev.risk_level);
+    const pRiskBrd = C.rBrd(prev.risk_level);
+    
+    // Calculate health change delta
+    const delta = d.health_score - prev.health_score;
+    let deltaHtml = '';
+    if (delta > 0) {
+      deltaHtml = `<span class="prev-diff-badge" style="color:var(--green);background:var(--gdim);border:1px solid rgba(16,217,138,0.25)">▲ Improved +${delta}%</span>`;
+    } else if (delta < 0) {
+      deltaHtml = `<span class="prev-diff-badge" style="color:var(--red);background:var(--rdim);border:1px solid rgba(255,59,92,0.25)">▼ Degraded ${delta}%</span>`;
+    } else {
+      deltaHtml = `<span class="prev-diff-badge" style="color:var(--text3);background:var(--bg3);border:1px solid var(--border)">■ No Change</span>`;
+    }
+
+    const prevVisualCondition = prev.vision_data ? prev.vision_data.machine_condition : 'UNKNOWN';
+
+    prevConditionHtml = `
+      <div class="prev-header">
+        <span class="card-head-lbl" style="font-size: 9px">Last Reading (${prevTime})</span>
+        <a href="/reports?id=${prev.id}" class="tag tag-accent" style="text-decoration:none">View Report #${prev.id}</a>
+      </div>
+      <div class="prev-grid">
+        <div class="prev-stat">
+          <div class="prev-stat-lbl">Health Score</div>
+          <div class="prev-stat-val" style="color:${pRiskColor}">${prev.health_score}%</div>
+          <span style="font-size: 8px;font-family:var(--mono);color:var(--text3);border-radius:4px;border:1px solid ${pRiskBrd};padding:1px 4px;background:${pRiskBg};margin-top:4px;display:inline-block">${prev.risk_level}</span>
+        </div>
+        <div class="prev-stat">
+          <div class="prev-stat-lbl">Visual State</div>
+          <div class="prev-stat-val" style="color:${C.cond(prevVisualCondition)}">${prevVisualCondition}</div>
+          <span class="tag ${C.condTag(prevVisualCondition)}" style="margin-top:4px;display:inline-block">${prevVisualCondition} CONDITION</span>
+        </div>
+      </div>
+      <div style="text-align: right; margin-top: 4px;">
+        ${deltaHtml}
+      </div>
+    `;
+  } else {
+    prevConditionHtml = `
+      <div class="prev-empty-state">
+        🗄️ First analysis run logged for this machine type.<br>No historical records are available prior to this timestamp.
+      </div>
+    `;
+  }
+
+  // ── AI Vision Analysis Layout (if exists) ──
+  let visionHtml = '';
+  if (d.image_path) {
+    const vd = d.vision_data;
+    if (vd) {
+      const cond = vd.machine_condition || 'UNKNOWN';
+      const condColor = C.cond(cond);
+      const condTag = C.condTag(cond);
+      const defects = vd.defects_found || [];
+      const actions = vd.manager_actions || [];
+
+      visionHtml = `
+        <div class="card" style="margin-top: 14px">
+          <div class="card-head">
+            <span class="card-head-ico">📸</span>
+            <span class="card-head-lbl">AI Visual Inspection Report</span>
+            <div class="card-head-right">
+              ${vd.immediate_safety_concern?'<span class="tag tag-red">⚠ SAFETY CONCERN</span>':''}
+              <span class="tag ${condTag}">${cond} CONDITION</span>
+            </div>
+          </div>
+          <div class="vision-summary-block">
+            <div class="vis-summary">${esc(vd.overall_visual_summary||'No visual summary available.')}</div>
+            <div class="vis-meta-row">
+              <div class="vis-meta">
+                <div class="vis-meta-lbl">Machine Identified</div>
+                <div class="vis-meta-val">${esc(vd.machine_identified||'Unknown')}</div>
+              </div>
+              <div class="vis-meta">
+                <div class="vis-meta-lbl">Cleanliness</div>
+                <div class="vis-meta-val">${esc(vd.cleanliness||'—')}</div>
+              </div>
+              <div class="vis-meta">
+                <div class="vis-meta-lbl">Visible Wear</div>
+                <div class="vis-meta-val">${esc(vd.visible_wear_level||'—')}</div>
+              </div>
+              <div class="vis-meta">
+                <div class="vis-meta-lbl">Est. Remaining Life</div>
+                <div class="vis-meta-val" style="color:${condColor}">${esc(vd.estimated_remaining_life||'—')}</div>
+              </div>
+            </div>
+            
+            <div class="defects-title">Detected Defects (${defects.length})</div>
+            ${defects.length===0
+              ? `<div class="no-defects" style="color:var(--green)">✓ No visible defects detected in the image</div>`
+              : defects.map(df => `
+              <div class="defect-item">
+                <div style="flex:1">
+                  <div class="defect-sev" style="color:${C.sev(df.severity)}">${df.severity||'?'} SEVERITY</div>
+                  <div class="defect-name">${esc(df.defect_type||'Unknown Defect')}</div>
+                  <div class="defect-loc">📍 ${esc(df.location||'Unknown location')}</div>
+                  <div class="defect-desc">${esc(df.description||'')}</div>
+                </div>
+                <span class="tag" style="color:${C.sev(df.severity)};background:${C.sev(df.severity).replace(')',', 0.12)').replace('var(','rgba(').replace(')',')')};border-color:${C.sev(df.severity).replace(')',', 0.35)').replace('var(','rgba(').replace(')',')')};flex-shrink:0;height:fit-content">${df.severity}</span>
+              </div>`).join('')
+            }
+
+            ${actions.length>0?`
+            <div style="margin-top:14px">
+              <div class="vis-actions-title">Manager Actions Required</div>
+              ${actions.map((a,i)=>`<div class="vis-action">
+                <div class="vis-action-n">${i+1}</div>
+                <div class="vis-action-t">${esc(a)}</div>
+              </div>`).join('')}
+            </div>
+            `:''}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // ── Assemble HTML ──
+  let h = '';
+
+  // KPI Row
+  h += `
+  <div class="kpi-row">
+    <div class="kpi ${C.kc(d.risk_level)}">
+      <div class="kpi-lbl">Health Score</div>
+      <div class="kpi-val" style="color:${rc}">${d.health_score}%</div>
+      <div class="kpi-sub">${d.risk_level}</div>
+    </div>
+    <div class="kpi kpi-red">
+      <div class="kpi-lbl">Critical Alerts</div>
+      <div class="kpi-val" style="color:var(--red)">${critCount}</div>
+      <div class="kpi-sub">Sensors in critical limit</div>
+    </div>
+    <div class="kpi kpi-orange">
+      <div class="kpi-lbl">Warnings</div>
+      <div class="kpi-val" style="color:var(--orange)">${warnCount}</div>
+      <div class="kpi-sub">Sensors exceeding warning limits</div>
+    </div>
+    <div class="kpi kpi-accent">
+      <div class="kpi-lbl">Diagnostics Mode</div>
+      <div class="kpi-val" style="color:var(--accent2)">${d.image_path ? 'VISUAL AI' : 'SENSOR'}</div>
+      <div class="kpi-sub">${enteredSensors.length} active sensor readings</div>
+    </div>
+  </div>
+  `;
+
+  // Grid
+  h += `
+  <div class="details-grid">
+    <!-- Left Column: Image & AI Visual Analysis -->
+    <div class="detail-col-inner">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-ico">🖼️</span>
+          <span class="card-head-lbl">Machine Photograph</span>
+        </div>
+        <div class="img-card-wrap">
+          ${d.image_path 
+            ? `<img src="/static/${d.image_path}" class="damage-img" alt="Machine damage photograph" />`
+            : `<div class="damage-img-empty">📁 No inspection photograph uploaded for this diagnostic run.</div>`
+          }
+        </div>
+      </div>
+      ${visionHtml}
+    </div>
+
+    <!-- Right Column: Sensor Indicators, Previous condition, Maintenance recommendations -->
+    <div class="detail-col-inner">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-ico">📊</span>
+          <span class="card-head-lbl">Manual Sensor Telemetry</span>
+        </div>
+        <div class="bars-inner">
+          ${sensorDetailsHtml}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-ico">🔄</span>
+          <span class="card-head-lbl">Previous Machine Condition</span>
+        </div>
+        <div class="prev-condition-card">
+          ${prevConditionHtml}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-head-ico">🔧</span>
+          <span class="card-head-lbl">Maintenance Tasks</span>
+        </div>
+        <div class="rec-list">
+          ${d.recommendations.length === 0
+            ? `<div class="no-defects" style="color:var(--green)">✓ Standard routine operations. No recommendations necessary.</div>`
+            : d.recommendations.map((rec, i) => `
+              <div class="rec-item">
+                <div class="rec-n">${i+1}</div>
+                <div class="rec-b">
+                  <div class="rec-p" style="color:${C.pri(rec.priority)}">${rec.priority}</div>
+                  <div class="rec-a">${esc(rec.action)}</div>
+                  <div class="rec-d">${esc(rec.detail)}</div>
+                </div>
+              </div>
+            `).join('')
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+
+  root.innerHTML = h;
+}
+
+// ── Trigger Report Deletion ──
+async function triggerDeleteReport() {
+  if (!currentReportId) return;
+  
+  if (confirm(`Are you sure you want to permanently delete Report #${currentReportId}? This will remove all diagnostic records and files from the server.`)) {
+    try {
+      const res = await fetch(`/api/reports/${currentReportId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        alert("Report deleted successfully.");
+        currentReportId = null;
+        
+        // Remove from browser query params
+        const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+        window.history.pushState({ path: newUrl }, '', newUrl);
+
+        // Reload timeline and show idle screen
+        await loadReportsList();
+        
+        if (reportsList.length > 0) {
+          selectReport(reportsList[0].id);
+        } else {
+          showState('idle');
+        }
+      } else {
+        alert("Delete failed: " + (data.error || "Unknown error"));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error deleting report: " + e.message);
+    }
+  }
+}
+
+// ── Trigger Direct Deletion from Card ──
+async function deleteReportDirectly(id, event) {
+  if (event) event.stopPropagation();
+  
+  if (confirm(`Are you sure you want to permanently delete Report #${id}? This will remove all diagnostic records and files from the server.`)) {
+    try {
+      const res = await fetch(`/api/reports/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        alert("Report deleted successfully.");
+        
+        // If we deleted the currently viewed report, reset
+        if (currentReportId === id) {
+          currentReportId = null;
+          const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
+          window.history.pushState({ path: newUrl }, '', newUrl);
+        }
+        
+        // Reload timeline
+        await loadReportsList();
+        
+        if (currentReportId) {
+          selectReport(currentReportId);
+        } else if (reportsList.length > 0) {
+          selectReport(reportsList[0].id);
+        } else {
+          showState('idle');
+        }
+      } else {
+        alert("Delete failed: " + (data.error || "Unknown error"));
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Error deleting report: " + e.message);
+    }
+  }
+}
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
